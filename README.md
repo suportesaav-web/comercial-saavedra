@@ -120,7 +120,7 @@ comercial-saavedra/
 
 ### 1. Clonar o Repositório e Instalar Dependências
 ```bash
-git clone https://github.com/SEU_USUARIO/comercial-saavedra.git
+git clone https://github.com/suportesaav-web/comercial-saavedra.git
 cd comercial-saavedra
 pip install -r requirements.txt
 ```
@@ -141,36 +141,34 @@ Acesse no seu navegador: **`http://localhost:8501`**
 
 ## 🌐 Deploy e Link Externo (Streamlit Community Cloud)
 
-Para disponibilizar a aplicação online gratuitamente via **Streamlit Cloud** com link público/corporativo:
+Você pode disponibilizar a aplicação online **100% gratuita** e com **link público permanente** através do Streamlit Community Cloud:
 
-1. **Suba este repositório para o seu GitHub:**
-   ```bash
-   git add .
-   git commit -m "feat: implementacao completa do dashboard comercial saavedra"
-   git branch -M main
-   git remote add origin https://github.com/SEU_USUARIO/comercial-saavedra.git
-   git push -u origin main
-   ```
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/deploy?repository=suportesaav-web/comercial-saavedra&branch=main&mainModule=app.py)
 
-2. **Conecte no Streamlit Community Cloud:**
-   * Acesse [share.streamlit.io](https://share.streamlit.io/) e faça login com sua conta GitHub.
-   * Clique em **"New app"**.
-   * Selecione:
-     * **Repository:** `SEU_USUARIO/comercial-saavedra`
-     * **Branch:** `main`
-     * **Main file path:** `app.py`
+### Passo a Passo para Gerar o Link Externo:
+
+1. **Acesso com 1 Clique:**
+   * Clique no badge acima ou acesse diretamente: [Streamlit Cloud Deploy](https://share.streamlit.io/deploy?repository=suportesaav-web/comercial-saavedra&branch=main&mainModule=app.py).
+   * Conecte-se com sua conta GitHub (**suportesaav-web**).
+
+2. **Parâmetros de Deploy:**
+   * **Repository:** `suportesaav-web/comercial-saavedra`
+   * **Branch:** `main`
+   * **Main file path:** `app.py`
+   * **App URL (opcional):** Escolha um subdomínio personalizado, por exemplo: `comercial-saavedra.streamlit.app`
+
+3. **Deploy:**
    * Clique em **"Deploy!"**.
-
-3. **Pronto!** Em poucos segundos você receberá um link público seguro (ex: `https://comercial-saavedra.streamlit.app`) para compartilhar com a diretoria e os gestores.
+   * Em menos de 2 minutos sua aplicação estará online, com certificado SSL (HTTPS) e sincronização automática: qualquer `git push` na branch `main` atualiza o dashboard instantaneamente!
 
 ---
 
 ## 📄 Licença
 
-Este projeto é distribuído sob a licença **MIT**. Consulte o arquivo [LICENSE](LICENSE) para obter mais informações.
+Este projeto é licenciado sob a licença **MIT** — veja o arquivo [LICENSE](LICENSE) para detalhes completos de uso e permissões.
 
 ---
 
 <div align="center">
-Desenvolvido para <b>Comercial Saavedra</b> • 2026
+Desenvolvido com excelência técnica para <b>Comercial Saavedra</b> • 2026
 </div>
