@@ -6,9 +6,11 @@ from pathlib import Path
 
 # Raiz do projeto e caminhos de dados
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+DIR_DADOS_BRUTOS = PROJECT_ROOT / "dados" / "bruto"
 DIR_DADOS_TRATADOS = PROJECT_ROOT / "dados" / "tratado"
 DIR_DADOS_ANALITICOS = PROJECT_ROOT / "dados" / "analitico"
 
+PATH_DADOS_BRUTOS = DIR_DADOS_BRUTOS / "Tarefas Power BI.xlsx"
 PATH_FATO_PARQUET = DIR_DADOS_TRATADOS / "tarefas_fato.parquet"
 PATH_PONTE_PARQUET = DIR_DADOS_TRATADOS / "tarefas_usuarios_ponte.parquet"
 PATH_MENSAL_PARQUET = DIR_DADOS_ANALITICOS / "kpis_agregados_mensais.parquet"
