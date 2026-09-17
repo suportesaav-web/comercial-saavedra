@@ -1,0 +1,588 @@
+{
+  "file_info": {
+    "file_name": "Tarefas Power BI.xlsx",
+    "extension": ".xlsx",
+    "size_bytes": 89699,
+    "sheet_count": 1,
+    "sheets": [
+      "Ploomes"
+    ],
+    "total_rows_excel": 1084,
+    "total_cols_excel": 11,
+    "data_rows": 1083,
+    "data_cols": 11
+  },
+  "columns": {
+    "Título": {
+      "column_name": "Título",
+      "inferred_type_pandas": "object",
+      "real_storage_types_excel": [
+        "NoneType",
+        "str"
+      ],
+      "total_rows": 1083,
+      "valid_values_count": 1069,
+      "null_count": 14,
+      "null_pct": 1.29,
+      "distinct_count": 871,
+      "cardinality_pct": 81.48,
+      "type_family": "string",
+      "min_len": 3,
+      "max_len": 100,
+      "leading_trailing_whitespace_count": 286,
+      "case_inconsistency_potential": true,
+      "lower_distinct_count": 849,
+      "top_5_values": {
+        "REUNIÃO SEMANAL": 28,
+        "Check-out - Atividades da Semana (atual e Prox.)": 21,
+        "SAAVEDRA": 12,
+        "VERIFICAR REAJUSTE": 8,
+        "Paciente Gilberto": 7
+      },
+      "sample_values": [
+        "Entregar Picc e Guia vencimento 31/01",
+        "Contagem consignados",
+        "Contagem de consignado",
+        "Contagem consignado",
+        "Farmacêutica Rosana "
+      ]
+    },
+    "Descrição": {
+      "column_name": "Descrição",
+      "inferred_type_pandas": "object",
+      "real_storage_types_excel": [
+        "str",
+        "NoneType"
+      ],
+      "total_rows": 1083,
+      "valid_values_count": 410,
+      "null_count": 673,
+      "null_pct": 62.14,
+      "distinct_count": 383,
+      "cardinality_pct": 93.41,
+      "type_family": "string",
+      "min_len": 2,
+      "max_len": 2017,
+      "leading_trailing_whitespace_count": 13,
+      "case_inconsistency_potential": false,
+      "lower_distinct_count": 383,
+      "top_5_values": {
+        "Sondagem": 5,
+        "Hangouts link: https://meet.google.com/mun-whsm-rvn": 5,
+        "Hangouts link: https://meet.google.com/uhv-gmcn-njk": 3,
+        "Hangouts link: https://meet.google.com/kqz-tsia-rmv\nCheck-out - Atividades da Semana (atual e Prox.)": 3,
+        "ainda não respondeu": 3
+      },
+      "sample_values": [
+        "ATS",
+        "Contagem",
+        "Realizado treinamento com acompanhamento da enf. Gisele ",
+        "Limpei e lubrifiquei a pistola. Estava. Em suja, cheia de crostas. Contatei a Kay responsável pelas compras e ela relatou que nunca tinha limpado. A pistola é deles. Ofereci treinamento e nossos produtos para limpeza e lubrificação. Ela me relatou que não usam a nossa agulha, sendo assim, mais um potencial problema. Ela pediu orçamento de agulhas e saneantes. Aguardando retorno. ",
+        "Hangouts link: https://meet.google.com/syv-fxxb-wvd\nTreinamento cuide bem de sua magnum."
+      ]
+    },
+    "Finalizada": {
+      "column_name": "Finalizada",
+      "inferred_type_pandas": "bool",
+      "real_storage_types_excel": [
+        "bool"
+      ],
+      "total_rows": 1083,
+      "valid_values_count": 1083,
+      "null_count": 0,
+      "null_pct": 0.0,
+      "distinct_count": 2,
+      "cardinality_pct": 0.18,
+      "type_family": "boolean",
+      "value_counts": {
+        "True": 971,
+        "False": 112
+      },
+      "min": "False",
+      "max": "True",
+      "sample_values": [
+        "True",
+        "True",
+        "True",
+        "True",
+        "True"
+      ]
+    },
+    "Data": {
+      "column_name": "Data",
+      "inferred_type_pandas": "datetime64[ns]",
+      "real_storage_types_excel": [
+        "datetime"
+      ],
+      "total_rows": 1083,
+      "valid_values_count": 1083,
+      "null_count": 0,
+      "null_pct": 0.0,
+      "distinct_count": 927,
+      "cardinality_pct": 85.6,
+      "type_family": "datetime",
+      "min": "2025-01-29 11:00:00",
+      "max": "2032-04-28 14:30:00",
+      "has_time": true,
+      "years": [
+        2025,
+        2026,
+        2027,
+        2032
+      ],
+      "future_dates_count": 19,
+      "sample_values": [
+        "2025-01-29 11:00:00",
+        "2025-02-03 10:00:00",
+        "2025-02-06 11:00:00",
+        "2025-02-06 14:00:00",
+        "2025-04-15 09:30:00"
+      ]
+    },
+    "Nome do Cliente": {
+      "column_name": "Nome do Cliente",
+      "inferred_type_pandas": "object",
+      "real_storage_types_excel": [
+        "NoneType",
+        "str"
+      ],
+      "total_rows": 1083,
+      "valid_values_count": 1082,
+      "null_count": 1,
+      "null_pct": 0.09,
+      "distinct_count": 77,
+      "cardinality_pct": 7.12,
+      "type_family": "string",
+      "min_len": 3,
+      "max_len": 56,
+      "leading_trailing_whitespace_count": 8,
+      "case_inconsistency_potential": false,
+      "lower_distinct_count": 77,
+      "top_5_values": {
+        "SAAVEDRA TECNOLOGIA EM SAUDE.": 218,
+        "HMV - HOSPITAL MOINHOS DE VENTO": 161,
+        "IRMANDADE DA SANTA CASA DE MISERICORDIA DE PORTO ALEGRE": 109,
+        "HOSPITAL NOSSA SENHORA DA CONCEICAO S.A.": 102,
+        "HOSPITAL SAO LUCAS DA PUCRS": 61
+      },
+      "sample_values": [
+        "Léia Back",
+        "Léia Back",
+        "HOSPITAL FEMINA",
+        "HOSPITAL FEMINA",
+        "HOSPITAL NOSSA SENHORA DA CONCEICAO S.A."
+      ]
+    },
+    "Título do Negócio": {
+      "column_name": "Título do Negócio",
+      "inferred_type_pandas": "object",
+      "real_storage_types_excel": [
+        "str"
+      ],
+      "total_rows": 1083,
+      "valid_values_count": 1083,
+      "null_count": 0,
+      "null_pct": 0.0,
+      "distinct_count": 188,
+      "cardinality_pct": 17.36,
+      "type_family": "string",
+      "min_len": 3,
+      "max_len": 137,
+      "leading_trailing_whitespace_count": 18,
+      "case_inconsistency_potential": false,
+      "lower_distinct_count": 188,
+      "top_5_values": {
+        "ADM. KYANNE": 72,
+        "ADM. Fernando": 51,
+        "PUREWICK - HMV": 44,
+        "ADM. CRISTIANA": 35,
+        "PUREWICK - SANTA CASA": 29
+      },
+      "sample_values": [
+        "Gerar demanda Picc 30 unidades mês ",
+        "Gerar demanda Picc 30 unidades mês ",
+        "Contagem Consignad",
+        "Contagem Consignado",
+        "Contagem Consignado"
+      ]
+    },
+    "Usuários": {
+      "column_name": "Usuários",
+      "inferred_type_pandas": "object",
+      "real_storage_types_excel": [
+        "str"
+      ],
+      "total_rows": 1083,
+      "valid_values_count": 1083,
+      "null_count": 0,
+      "null_pct": 0.0,
+      "distinct_count": 74,
+      "cardinality_pct": 6.83,
+      "type_family": "string",
+      "min_len": 11,
+      "max_len": 118,
+      "leading_trailing_whitespace_count": 0,
+      "case_inconsistency_potential": false,
+      "lower_distinct_count": 74,
+      "top_5_values": {
+        "Fernando Bomfoco": 349,
+        "Priscila Scherer": 260,
+        "Miriã Kruno": 164,
+        "Kyanne Reis": 46,
+        "Cristiana Gehm": 40
+      },
+      "sample_values": [
+        "Fernando Bomfoco",
+        "Fernando Bomfoco",
+        "Fernando Bomfoco",
+        "Fernando Bomfoco",
+        "Fernando Bomfoco"
+      ]
+    },
+    "Marcadores": {
+      "column_name": "Marcadores",
+      "inferred_type_pandas": "object",
+      "real_storage_types_excel": [
+        "str",
+        "NoneType"
+      ],
+      "total_rows": 1083,
+      "valid_values_count": 453,
+      "null_count": 630,
+      "null_pct": 58.17,
+      "distinct_count": 16,
+      "cardinality_pct": 3.53,
+      "type_family": "string",
+      "min_len": 4,
+      "max_len": 41,
+      "leading_trailing_whitespace_count": 0,
+      "case_inconsistency_potential": false,
+      "lower_distinct_count": 16,
+      "top_5_values": {
+        "Visita Recorrente": 177,
+        "ADM.": 72,
+        "Contagem OPME": 66,
+        "REUNIÃO SEMANAL": 34,
+        "1° Visita": 28
+      },
+      "sample_values": [
+        "Contagem OPME",
+        "Contagem OPME",
+        "Contagem OPME",
+        "Contagem OPME",
+        "Contagem OPME"
+      ]
+    },
+    "Data de criação": {
+      "column_name": "Data de criação",
+      "inferred_type_pandas": "datetime64[ns]",
+      "real_storage_types_excel": [
+        "datetime"
+      ],
+      "total_rows": 1083,
+      "valid_values_count": 1083,
+      "null_count": 0,
+      "null_pct": 0.0,
+      "distinct_count": 987,
+      "cardinality_pct": 91.14,
+      "type_family": "datetime",
+      "min": "2025-01-29 11:09:35.617000",
+      "max": "2026-09-17 07:44:14.527000",
+      "has_time": true,
+      "years": [
+        2025,
+        2026
+      ],
+      "future_dates_count": 0,
+      "sample_values": [
+        "2025-01-29 11:09:35.617",
+        "2025-02-03 09:08:06.093",
+        "2025-02-04 15:05:15.137",
+        "2025-02-04 15:18:14.440",
+        "2025-04-15 07:15:48.163"
+      ]
+    },
+    "Tipo": {
+      "column_name": "Tipo",
+      "inferred_type_pandas": "object",
+      "real_storage_types_excel": [
+        "str"
+      ],
+      "total_rows": 1083,
+      "valid_values_count": 1083,
+      "null_count": 0,
+      "null_pct": 0.0,
+      "distinct_count": 7,
+      "cardinality_pct": 0.65,
+      "type_family": "string",
+      "min_len": 6,
+      "max_len": 11,
+      "leading_trailing_whitespace_count": 0,
+      "case_inconsistency_potential": false,
+      "lower_distinct_count": 7,
+      "top_5_values": {
+        "Visita": 851,
+        "Reunião": 90,
+        "Simples": 63,
+        "WhatsApp": 56,
+        "Conferência": 10
+      },
+      "sample_values": [
+        "Visita",
+        "Visita",
+        "Visita",
+        "Visita",
+        "Visita"
+      ]
+    },
+    "Criador": {
+      "column_name": "Criador",
+      "inferred_type_pandas": "object",
+      "real_storage_types_excel": [
+        "str"
+      ],
+      "total_rows": 1083,
+      "valid_values_count": 1083,
+      "null_count": 0,
+      "null_pct": 0.0,
+      "distinct_count": 8,
+      "cardinality_pct": 0.74,
+      "type_family": "string",
+      "min_len": 11,
+      "max_len": 16,
+      "leading_trailing_whitespace_count": 0,
+      "case_inconsistency_potential": false,
+      "lower_distinct_count": 8,
+      "top_5_values": {
+        "Fernando Bomfoco": 395,
+        "Priscila Scherer": 271,
+        "Miriã Kruno": 191,
+        "Kyanne Reis": 121,
+        "Google Calendar": 57
+      },
+      "sample_values": [
+        "Fernando Bomfoco",
+        "Fernando Bomfoco",
+        "Fernando Bomfoco",
+        "Fernando Bomfoco",
+        "Fernando Bomfoco"
+      ]
+    }
+  },
+  "full_duplicates_count": 0,
+  "full_duplicates_samples": [],
+  "duplicates_excluding_data_criacao": 7,
+  "key_tests": [
+    {
+      "columns": [
+        "Título"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 872,
+      "null_count": 14,
+      "uniqueness_pct": 80.52,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Descrição"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 384,
+      "null_count": 673,
+      "uniqueness_pct": 35.46,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Finalizada"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 2,
+      "null_count": 0,
+      "uniqueness_pct": 0.18,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Data"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 927,
+      "null_count": 0,
+      "uniqueness_pct": 85.6,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Nome do Cliente"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 78,
+      "null_count": 1,
+      "uniqueness_pct": 7.2,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Título do Negócio"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 188,
+      "null_count": 0,
+      "uniqueness_pct": 17.36,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Usuários"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 74,
+      "null_count": 0,
+      "uniqueness_pct": 6.83,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Marcadores"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 17,
+      "null_count": 630,
+      "uniqueness_pct": 1.57,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Data de criação"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 987,
+      "null_count": 0,
+      "uniqueness_pct": 91.14,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Tipo"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 7,
+      "null_count": 0,
+      "uniqueness_pct": 0.65,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Criador"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 8,
+      "null_count": 0,
+      "uniqueness_pct": 0.74,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Data",
+        "Usuários"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 1041,
+      "null_count": 0,
+      "uniqueness_pct": 96.12,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Data",
+        "Criador"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 1033,
+      "null_count": 0,
+      "uniqueness_pct": 95.38,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Data",
+        "Nome do Cliente"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 1017,
+      "null_count": 1,
+      "uniqueness_pct": 93.91,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Título",
+        "Data"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 1057,
+      "null_count": 14,
+      "uniqueness_pct": 97.6,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Título",
+        "Nome do Cliente",
+        "Data"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 1066,
+      "null_count": 15,
+      "uniqueness_pct": 98.43,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Título",
+        "Usuários",
+        "Data"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 1060,
+      "null_count": 14,
+      "uniqueness_pct": 97.88,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Data de criação",
+        "Usuários"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 987,
+      "null_count": 0,
+      "uniqueness_pct": 91.14,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Data de criação",
+        "Criador"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 994,
+      "null_count": 0,
+      "uniqueness_pct": 91.78,
+      "is_primary_key_candidate": false
+    },
+    {
+      "columns": [
+        "Data de criação",
+        "Título"
+      ],
+      "total_rows": 1083,
+      "distinct_count": 995,
+      "null_count": 14,
+      "uniqueness_pct": 91.87,
+      "is_primary_key_candidate": false
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+"""
+Módulo analítico da aplicação.
+"""
