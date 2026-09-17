@@ -13,27 +13,29 @@ def get_project_root() -> Path:
     return Path(__file__).resolve().parent.parent
 
 
-def extract_raw_tasks(file_path: Path | str | None = None, sheet_name: str = "Ploomes") -> pd.DataFrame:
+def extract_raw_tasks(file_path_or_buffer=None, sheet_name: str | None = "Ploomes") -> pd.DataFrame:
     """
-    Extrai os dados da aba especificada da planilha bruta do Excel.
+    Extrai os dados da aba especificada da planilha bruta do Excel ou de um buffer em memória.
 
     Args:
-        file_path: Caminho para o arquivo Excel. Se None, usa o caminho padrão dados/bruto/Tarefas Power BI.xlsx.
-        sheet_name: Nome da aba a ser lida. Padrão 'Ploomes'.
+        file_path_or_buffer: Caminho (Path/str) ou buffer (BytesIO/UploadedFile). Se None, usa dados/bruto/Tarefas Power BI.xlsx.
+        sheet_name: Nome da aba a ser lida. Se 'Ploomes' não existir, seleciona a primeira aba disponível.
 
     Returns:
         pd.DataFrame: DataFrame com os dados brutos extraídos.
     """
-    if file_path is None:
+    if file_path_or_buffer is None:
         root = get_project_root()
-        file_path = root / "dados" / "bruto" / "Tarefas Power BI.xlsx"
-    else:
-        file_path = Path(file_path)
+        file_path_or_buffer = root / "dados" / "bruto" / "Tarefas Power BI.xlsx"
+        if not file_path_or_buffer.exists():
+            raise FileNotFoundError(f"Arquivo bruto não encontrado no caminho padrão: {file_path_or_buffer}")
 
-    if not file_path.exists():
-        raise FileNotFoundError(f"Arquivo bruto não encontrado no caminho especificado: {file_path}")
+    # Inspeciona as abas do arquivo
+    excel_file = pd.ExcelFile(file_path_or_buffer, engine="openpyxl")
+    available_sheets = excel_file.sheet_names
 
-    df_raw = pd.read_excel(file_path, sheet_name=sheet_name, engine="openpyxl")
+    target_sheet = sheet_name if (sheet_name and sheet_name in available_sheets) else available_sheets[0]
+    df_raw = pd.read_excel(file_path_or_buffer, sheet_name=target_sheet, engine="openpyxl")
     return df_raw
 
 

@@ -84,11 +84,15 @@ comercial-saavedra/
 │   ├── charts/                      # Gráficos interativos Plotly (linhas, rankings, roscas, heatmap)
 │   ├── utils/                       # Exportador para CSV (pt-BR com BOM) e Excel (.xlsx)
 │   └── pages/                       # Módulos analíticos navegáveis
-│       ├── 1_Visao_Geral.py         # Painel executivo consolidado
+│       ├── 1_Visao_Geral.py         # Painel executivo consolidado com Alertas Inteligentes
 │       ├── 2_Vendedores_e_Equipe.py # Produtividade, horas, atrasos e ociosidade semanal
 │       ├── 3_Clientes_e_Negocios.py # Cobertura de contas hospitalares e oportunidades
 │       ├── 4_Analise_Temporal.py    # Sazonalidade, horários de pico e lead time
-│       └── 5_Detalhamento_Operacional.py # Tabela dinâmica com busca e exportação
+│       ├── 5_Detalhamento_Operacional.py # Tabela dinâmica com busca e exportação
+│       ├── 6_Atualizar_Dados.py     # Upload do novo XLSX com ETL automático e recarga de cache
+│       └── 7_Guia_de_Uso.py         # Central de ajuda interativa, glossário de KPIs e FAQs
+│
+├── pages/                           # Encaminhadores para compatibilidade Streamlit Cloud
 │
 ├── etl/                             # Pipeline de Engenharia de Dados
 │   ├── extract.py                   # Extração da planilha bruta do Excel

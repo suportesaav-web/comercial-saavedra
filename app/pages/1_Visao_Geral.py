@@ -20,6 +20,7 @@ from app.data.loader import load_data
 from app.filters.sidebar_filters import render_sidebar_filters
 from app.components.ui import render_header, render_filter_badge
 from app.components.kpi_cards import render_overview_kpis
+from app.components.insights import render_smart_insights
 from app.analytics.metrics import compute_overview_kpis
 from app.analytics.aggregations import aggregate_timeline, aggregate_by_type, aggregate_lead_time_bins
 from app.charts.temporal import plot_monthly_timeline, plot_lead_time_chart
@@ -41,6 +42,9 @@ st.write("")
 
 kpis = compute_overview_kpis(df_filtered)
 render_overview_kpis(kpis)
+
+st.write("")
+render_smart_insights(df_filtered, df_ponte_filtered)
 
 st.write("")
 st.write("")
