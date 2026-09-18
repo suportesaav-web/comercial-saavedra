@@ -1,13 +1,15 @@
 """
 Página 6: Atualização & Carga de Dados - Comercial Saavedra.
-Permite aos gestores fazer upload de novas planilhas exportadas do CRM Ploomes,
-executando o pipeline ETL e atualizando a camada colunar Parquet em tempo real.
+Permite aos gestores sincronizar os dados diretamente da API v2 do Ploomes CRM com 1 clique,
+ou fazer upload de novas planilhas exportadas como contingência, executando o pipeline ETL
+e atualizando a camada colunar Parquet em tempo real.
 """
 
 import sys
 import os
 from pathlib import Path
 import io
+import time
 
 _current_file = Path(__file__).resolve()
 _app_dir_norm = os.path.normcase(str(_current_file.parent.parent))
@@ -20,16 +22,25 @@ if _project_root not in sys.path:
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from app.config.settings import PAGE_CONFIG, PATH_FATO_PARQUET, PATH_PONTE_PARQUET, PATH_DADOS_BRUTOS
+from app.config.settings import (
+    PAGE_CONFIG,
+    PATH_FATO_PARQUET,
+    PATH_PONTE_PARQUET,
+    PATH_DADOS_BRUTOS,
+    get_ploomes_credentials,
+    PLOOMES_API_KEY,
+    PLOOMES_BASE_URL
+)
 from app.data.loader import load_data, clear_cache
 from app.components.ui import render_header
 from etl.load import run_etl
+from etl.api_client import PloomesClient
 
 st.set_page_config(**PAGE_CONFIG)
 
 render_header(
     title="Atualização & Carga de Dados da Base",
-    subtitle="Importação e processamento colunar de novos relatórios de tarefas exportados do Ploomes CRM",
+    subtitle="Sincronização automatizada via API Ploomes CRM e processamento colunar de alta performance",
     icon="⚙️"
 )
 
@@ -61,27 +72,122 @@ with col_stat3:
 with col_stat4:
     st.metric(label="Última Atualização", value=mtime_atual)
 
+st.write("")
+st.divider()
+
+# 2. Sincronização Direta via API Ploomes CRM
+st.markdown("### 🔄 Sincronização Direta via API Ploomes CRM")
+st.markdown(
+    "A sincronização via API busca automaticamente todas as tarefas, negócios, clientes e participações "
+    "da equipe direto do banco do **Ploomes CRM**, eliminando a necessidade de exportação manual."
+)
+
+api_key_configured = bool(PLOOMES_API_KEY)
+masked_key = f"{PLOOMES_API_KEY[:6]}...{PLOOMES_API_KEY[-6:]}" if api_key_configured and len(PLOOMES_API_KEY) > 12 else "Não configurada"
+
+card_col1, card_col2 = st.columns([3, 2])
+
+with card_col1:
+    if api_key_configured:
+        st.success(f"🟢 **API Configurada & Pronta:** User-Key conectada (`{masked_key}`).")
+    else:
+        st.warning("⚠️ **Chave de API não localizada.** Configure sua `PLOOMES_API_KEY` no arquivo `.env` ou abaixo.")
+
+with card_col2:
+    btn_test_conn = st.button("🔍 Testar Conexão com a API", use_container_width=True)
+
+if btn_test_conn:
+    with st.spinner("Testando conectividade com https://api2.ploomes.com..."):
+        client_test = PloomesClient()
+        is_ok, msg = client_test.test_connection()
+        if is_ok:
+            try:
+                remote_count = client_test.get_total_tasks_count()
+                st.success(f"✅ {msg} | **{remote_count:,} tarefas** disponíveis no CRM remoto.".replace(",", "."))
+            except Exception:
+                st.success(f"✅ {msg}")
+        else:
+            st.error(f"❌ {msg}")
+
+# Botão principal de sincronização
+st.write("")
+btn_sync_api = st.button(
+    "🚀 Sincronizar Base com Ploomes CRM Agora",
+    type="primary",
+    disabled=not api_key_configured,
+    use_container_width=True,
+    help="Conecta ao Ploomes CRM, baixa todos os registros, executa as transformações analíticas e atualiza a base Parquet."
+)
+
+if btn_sync_api:
+    progress_bar = st.progress(0, text="Iniciando comunicação com a API...")
+    status_box = st.empty()
+
+    def update_ui_progress(current: int, total: int, msg: str):
+        pct = 0.05
+        if total > 0:
+            pct = min(1.0, max(0.05, current / total))
+        progress_bar.progress(pct, text=msg)
+
+    t_start = time.time()
+    try:
+        status_box.info("⏳ Conectando aos servidores do Ploomes CRM e requisitando lotes OData...")
+        stats = run_etl(source="api", progress_callback=update_ui_progress)
+        
+        progress_bar.progress(1.0, text="Atualizando memória analítica em cache...")
+        clear_cache()
+        t_total = time.time() - t_start
+
+        status_box.empty()
+        st.balloons()
+        st.success(f"✅ **Sincronização concluída com sucesso em {t_total:.1f} segundos!** Todos os dashboards foram atualizados.")
+
+        # Resumo da Carga
+        st.markdown("#### 📋 Resumo da Carga via API")
+        r_col1, r_col2, r_col3, r_col4 = st.columns(4)
+        with r_col1:
+            st.metric("Tarefas Fato Processadas", f"{stats['fato_rows']:,}".replace(",", "."))
+        with r_col2:
+            st.metric("Participações de Consultores", f"{stats['ponte_rows']:,}".replace(",", "."))
+        with r_col3:
+            st.metric("Agregações Mensais", f"{stats['mensal_rows']:,}".replace(",", "."))
+        with r_col4:
+            st.metric("Tamanho Parquet Otimizado", f"{stats['fato_size_kb']} KB")
+
+        st.info("💡 Você já pode navegar pelas páginas do menu lateral (**Visão Geral**, **Vendedores & Equipe**, etc.) para visualizar os dados atualizados.")
+
+    except Exception as e:
+        status_box.empty()
+        st.error(f"❌ Falha durante a sincronização via API: {e}")
+        st.warning("Verifique sua conexão com a internet e as credenciais do CRM Ploomes.")
+
+# Configuração Opcional de Chave via Interface
+with st.expander("🔑 Alterar / Informar outra Chave de API temporariamente", expanded=False):
+    st.markdown("Caso queira testar uma chave de API diferente da configurada no `.env`:")
+    custom_key_input = st.text_input("Ploomes User-Key", type="password", help="Insira a chave gerada no painel do Ploomes")
+    if st.button("Salvar Chave nesta Sessão"):
+        if custom_key_input.strip():
+            os.environ["PLOOMES_API_KEY"] = custom_key_input.strip()
+            st.success("Chave atualizada para a sessão atual! Clique em 'Testar Conexão' acima.")
+            st.rerun()
 
 st.write("")
 st.divider()
 
-# 2. Instruções de Exportação no Ploomes CRM
-with st.expander("ℹ️ Como exportar a base correta do Ploomes CRM", expanded=False):
+# 3. Carga Manual de Planilha Excel (Contingência)
+st.markdown("### 📁 Carga Manual de Planilha Excel (Contingência)")
+st.caption("Utilize esta opção caso a API do CRM esteja temporariamente inacessível ou necessite auditar uma planilha exportada manualmente.")
+
+with st.expander("ℹ️ Instruções para exportar arquivo manual do Ploomes CRM", expanded=False):
     st.markdown(
         """
-        Para garantir a compatibilidade 100% com os algoritmos de BI do Comercial Saavedra:
-        1. Acesse o **Ploomes CRM** com seu usuário e senha.
-        2. No menu lateral, acesse **Tarefas**.
-        3. Remova filtros restritivos de vendedor para obter a visão de toda a equipe (ou filtre o período desejado).
-        4. Clique no botão de opções e selecione **Exportar para Excel (.xlsx)**.
-        5. Certifique-se de que a planilha contém as colunas padrão:
-           * `Título`, `Tipo`, `Data`, `Finalizada`, `Criador`, `Usuários`, `Cliente` (ou `Nome do Cliente`), `Negócio`, `Duração`, `Contato`, `E-mail`.
-        6. Faça o upload do arquivo gerado logo abaixo.
+        Para garantir a compatibilidade total com os algoritmos de BI:
+        1. Acesse o **Ploomes CRM** > **Tarefas**.
+        2. Remova filtros restritivos de vendedor para obter a visão de toda a equipe.
+        3. Clique em **Opções** > **Exportar para Excel (.xlsx)**.
+        4. Faça o upload do arquivo gerado logo abaixo.
         """
     )
-
-st.write("")
-st.markdown("### 📤 Upload do Novo Arquivo do CRM")
 
 uploaded_file = st.file_uploader(
     label="Selecione ou arraste a planilha exportada do Ploomes (.xlsx ou .xls)",
@@ -90,52 +196,39 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file is not None:
-    # Diagnóstico preliminar do arquivo
     file_size_kb = uploaded_file.size / 1024
     st.info(f"📁 Arquivo carregado: **{uploaded_file.name}** ({file_size_kb:.1f} KB)")
 
-    col_btn1, col_btn2 = st.columns([2, 3])
-
-    with col_btn1:
-        start_processing = st.button("🚀 Processar e Atualizar Base Analítica", type="primary", use_container_width=True)
+    col_btn_upload, _ = st.columns([2, 3])
+    with col_btn_upload:
+        start_processing = st.button("🚀 Processar Planilha Excel", type="secondary", use_container_width=True)
 
     if start_processing:
-        progress_bar = st.progress(10, text="Iniciando extração e validação dos dados...")
-        
+        prog_excel = st.progress(10, text="Iniciando processamento da planilha...")
         try:
-            # 1. Executa o pipeline ETL completo
-            progress_bar.progress(35, text="Aplicando regras de saneamento, chaves e desaninhamento...")
             stats = run_etl(file_source=uploaded_file, save_raw_copy=True)
-            
-            progress_bar.progress(80, text="Invalidando cache e atualizando arquivos Parquet...")
+            prog_excel.progress(80, text="Atualizando arquivos e invalidando cache...")
             clear_cache()
-            
-            progress_bar.progress(100, text="Processamento concluído com sucesso!")
-            
+            prog_excel.progress(100, text="Processamento concluído!")
+
             st.balloons()
-            st.success("✅ **Base de dados atualizada com sucesso!** Todos os dashboards já estão sincronizados com os novos dados.")
+            st.success("✅ **Base de dados atualizada a partir do arquivo Excel com sucesso!**")
             
-            # Exibe métricas da nova carga
-            st.markdown("#### 📋 Resumo da Carga Executada")
-            r_col1, r_col2, r_col3 = st.columns(3)
-            with r_col1:
-                st.metric("Tarefas Fato Processadas", f"{stats['fato_rows']:,}".replace(",", "."))
-            with r_col2:
-                st.metric("Participações de Consultores", f"{stats['ponte_rows']:,}".replace(",", "."))
-            with r_col3:
-                st.metric("Tamanho Otimizado (Parquet)", f"{stats['fato_size_kb']} KB")
-            
-            st.write("")
-            st.info("💡 Você pode navegar diretamente para a **Visão Geral** ou **Vendedores & Equipe** no menu lateral para analisar os novos dados.")
+            res_c1, res_c2, res_c3 = st.columns(3)
+            with res_c1:
+                st.metric("Tarefas Fato", f"{stats['fato_rows']:,}".replace(",", "."))
+            with res_c2:
+                st.metric("Participações", f"{stats['ponte_rows']:,}".replace(",", "."))
+            with res_c3:
+                st.metric("Tamanho Parquet", f"{stats['fato_size_kb']} KB")
 
         except Exception as e:
-            st.error(f"❌ Ocorreu um erro ao processar o arquivo: {e}")
-            st.warning("Verifique se a planilha é uma exportação válida do Ploomes CRM e contém as colunas necessárias.")
+            st.error(f"❌ Ocorreu um erro ao processar a planilha: {e}")
 
 st.write("")
 st.divider()
 
-# 3. Exportação e Download dos Dados Tratados para Power BI / Excel
+# 4. Exportação e Download dos Dados Tratados para Power BI / Excel
 st.markdown("### 💾 Exportação para Power BI ou Análise Local")
 st.markdown(
     "Caso queira utilizar a base colunar já saneada em projetos do **Power BI Desktop** ou **Python Notebooks**, baixe os arquivos diretamente:"

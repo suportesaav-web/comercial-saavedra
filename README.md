@@ -30,7 +30,8 @@ A solução adota uma arquitetura desacoplada em três camadas:
 
 ```mermaid
 flowchart LR
-    A["📂 dados/bruto/<br>Tarefas Power BI.xlsx"] --> B["⚙️ Pipeline ETL Python<br>(extract • validate • transform)"]
+    API["🌐 Ploomes CRM API v2<br>(https://api2.ploomes.com)"] --> B["⚙️ Pipeline ETL Python<br>(api_client • extract • validate • transform)"]
+    XLS["📂 dados/bruto/<br>Tarefas Power BI.xlsx (Fallback)"] --> B
     B --> C["📦 dados/tratado/<br>tarefas_fato.parquet<br>tarefas_usuarios_ponte.parquet"]
     B --> D["📊 dados/analitico/<br>kpis_agregados_mensais.parquet"]
     C --> E["🚀 Aplicação Web Streamlit<br>(Cache @st.cache_data)"]
@@ -39,7 +40,8 @@ flowchart LR
 ```
 
 ### Principais Diferenciais Técnicos:
-1. **Desacoplamento Completo:** A aplicação web nunca acessa o arquivo bruto diretamente, evitando travamentos de concorrência.
+1. **Integração Nativa via API:** Sincronização direta com a API v2 do Ploomes CRM com paginação OData, rate-limiting e retries automáticos.
+2. **Desacoplamento Completo:** A aplicação web consome exclusivamente os arquivos Parquet pré-processados, garantindo tempo de resposta sub-segundo.
 2. **Armazenamento Colunar (Parquet + Snappy):** Compressão de dados eficiente com preservação estrita de tipagem (`Date`, `Time`, `Boolean`, `Int64`, `Float64`).
 3. **Invalidação Dinâmica de Cache (`mtime`):** O Streamlit detecta automaticamente quando os arquivos Parquet são atualizados pelo ETL e recarrega os dados sem necessidade de reiniciar o servidor.
 4. **Resolução de Relações N:N:** Tabela-ponte despivotada para tarefas com múltiplos vendedores participantes.
@@ -127,12 +129,18 @@ comercial-saavedra/
 git clone https://github.com/suportesaav-web/comercial-saavedra.git
 cd comercial-saavedra
 pip install -r requirements.txt
+cp .env.example .env  # No Windows: copy .env.example .env
+# Configure sua chave PLOOMES_API_KEY no arquivo .env
 ```
 
 ### 2. Executar o Pipeline de Dados (ETL)
-Gera os arquivos Parquet tratados a partir do arquivo bruto em `dados/bruto/`:
+Sincroniza automaticamente da API Ploomes CRM e gera a camada colunar Parquet otimizada:
 ```bash
-python -m etl.load
+# Sincronização direta via API Ploomes CRM (recomendado)
+python -m etl.load --source api
+
+# Ou carga local a partir de planilha Excel (fallback)
+python -m etl.load --source excel
 ```
 
 ### 3. Iniciar o Dashboard Streamlit

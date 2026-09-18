@@ -82,3 +82,12 @@ def load_data() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
 def clear_cache():
     """Limpa o cache do Streamlit manualmente."""
     st.cache_data.clear()
+
+
+@st.cache_data(show_spinner=False)
+def load_users() -> pd.DataFrame:
+    """Carrega a dimensão cadastral de usuários do Ploomes CRM."""
+    from app.config.settings import PATH_USUARIOS_PARQUET
+    if PATH_USUARIOS_PARQUET.exists():
+        return pd.read_parquet(PATH_USUARIOS_PARQUET)
+    return pd.DataFrame()

@@ -25,17 +25,20 @@ A aplicação foi projetada com base em quatro princípios fundamentais de engen
 ## 2. Fluxo Completo dos Dados (Pipeline)
 
 ```
-[1. Fonte Bruta]
-dados/bruto/Tarefas Power BI.xlsx (Excel Ploomes, 1.083 tarefas)
+[1. Fontes de Dados]
+Ploomes CRM REST API v2 (Primária: https://api2.ploomes.com/Tasks)
+  └── Fallback/Contingência: dados/bruto/Tarefas Power BI.xlsx (Excel)
        │
        ▼
 [2. Camada de Engenharia de Dados (ETL)]
-etl/extract.py     ──> Lê a aba 'Ploomes' com openpyxl/pandas
+etl/api_client.py  ──> Cliente OData com retries, rate-limit e paginação de 300 em 300
+etl/extract.py     ──> Extração unificada (API Ploomes ou Excel)
 etl/validate.py    ──> Valida integridade, schema e limites
 etl/transform.py   ──> Aplica regras de negócio:
                        - Cria Surrogate Key inteira (sk_tarefa: 1..N)
                        - Substitui nulos de clientes por "Cliente Não Informado"
-                       - Gera títulos substitutos para as 14 tarefas vazias
+                       - Gera títulos substitutos para tarefas vazias
+                       - Normaliza fuso horário para timezone-naive
                        - Separa data_evento (Date) e hora_evento (Time)
                        - Calcula lead_time_dias (data_evento - data_criacao)
                        - Constrói a tabela-ponte despivotada (tarefas_usuarios_ponte)
@@ -44,9 +47,9 @@ etl/load.py        ──> Grava arquivos Parquet com compressão Snappy
        │
        ▼
 [3. Camada de Dados Otimizados]
-dados/tratado/tarefas_fato.parquet               (1.083 linhas, 28 colunas)
-dados/tratado/tarefas_usuarios_ponte.parquet     (1.596 participações)
-dados/analitico/kpis_agregados_mensais.parquet   (70 agregações temporais)
+dados/tratado/tarefas_fato.parquet               (3.142 tarefas, 34 colunas)
+dados/tratado/tarefas_usuarios_ponte.parquet     (3.142 participações)
+dados/analitico/kpis_agregados_mensais.parquet   (114 agregações temporais)
        │
        ▼
 [4. Camada Analítica Web (Streamlit)]
@@ -157,15 +160,28 @@ A aplicação iniciará automaticamente e abrirá o navegador no endereço padr�
 ---
 
 ## 6. Como Atualizar os Dados
+ 
+A aplicação suporta três formas de atualização da base de dados:
 
-Sempre que um novo arquivo Excel for exportado do Ploomes:
+### Método 1: Sincronização Direta via API (Recomendado)
+1. Acesse o dashboard na página **"⚙️ Atualização & Carga de Dados"** no menu lateral.
+2. Clique no botão primário **"🚀 Sincronizar Base com Ploomes CRM Agora"**.
+3. O sistema realiza as chamadas paginadas à API, atualiza as tabelas Parquet e invalida o cache automaticamente.
 
-1. Substitua o arquivo em `dados/bruto/Tarefas Power BI.xlsx` (ou mantenha o mesmo nome).
-2. Execute o comando de ETL:
-   ```bash
-   python -m etl.load
-   ```
-3. Abra a aplicação Streamlit e clique no botão **"Recarregar Dados"** ou reinicie a sessão para que o `@st.cache_data` recarregue os Parquets atualizados.
+### Método 2: Automação por Linha de Comando (Task Scheduler / Cron)
+Para sincronização diária agendada via servidor ou máquina local:
+```bash
+python -m etl.load --source api
+```
+*Para forçar a leitura do arquivo Excel local:*
+```bash
+python -m etl.load --source excel
+```
+
+### Método 3: Carga Manual de Planilha Excel (Contingência)
+Caso o serviço externo do CRM esteja instável:
+1. Exporte a planilha de tarefas no painel do Ploomes (`.xlsx`).
+2. Acesse a página **"⚙️ Atualização & Carga de Dados"** e utilize o componente de upload na seção de contingência.
 
 ---
 

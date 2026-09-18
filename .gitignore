@@ -10,8 +10,11 @@ __pycache__/
 *$py.class
 *.pytest_cache/
 
-# Streamlit
+# Streamlit e Variáveis de Ambiente
 .streamlit/secrets.toml
+.env
+.env.*
+!.env.example
 
 # Excel e Power BI arquivos temporários e de bloqueio
 ~$*

@@ -25,7 +25,7 @@ if _project_root not in sys.path:
 
 import streamlit as st
 import pandas as pd
-from app.config.settings import PAGE_CONFIG, COLORS
+from app.config.settings import PAGE_CONFIG, COLORS, is_commercial_user
 from app.data.loader import load_data
 from app.filters.sidebar_filters import render_sidebar_filters
 from app.components.ui import render_header, render_filter_badge
@@ -49,6 +49,9 @@ st.write("")
 
 # Métricas calculadas por vendedor
 df_users = compute_user_kpis(df_ponte_filtered)
+
+if not df_users.empty:
+    df_users = df_users[df_users["nome_usuario"].apply(is_commercial_user)].copy()
 
 if df_users.empty:
     st.info("Nenhum dado encontrado para os filtros selecionados.")

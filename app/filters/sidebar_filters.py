@@ -2,6 +2,7 @@ from typing import Tuple
 from datetime import date, timedelta
 import pandas as pd
 import streamlit as st
+from app.config.settings import is_commercial_user
 
 
 def render_sidebar_filters(df_fato: pd.DataFrame, df_ponte: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -72,7 +73,11 @@ def render_sidebar_filters(df_fato: pd.DataFrame, df_ponte: pd.DataFrame) -> Tup
     # 3. Inicialização e Filtro de Vendedores / Consultores
     if "filter_vendedores" not in st.session_state:
         st.session_state["filter_vendedores"] = []
-    todos_vendedores = sorted(df_ponte["nome_usuario"].dropna().unique().tolist())
+
+    todos_vendedores = sorted([
+        u for u in df_ponte["nome_usuario"].dropna().unique()
+        if is_commercial_user(u)
+    ])
     vendedores_sel = st.sidebar.multiselect(
         "Vendedores / Consultores",
         options=todos_vendedores,

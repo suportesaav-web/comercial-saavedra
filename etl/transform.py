@@ -6,14 +6,17 @@ incorporação das novas métricas de Duração, Contatos e Sincronização de E
 """
 
 from typing import Tuple
+import re
 import pandas as pd
 import numpy as np
 
 try:
-    from app.config.settings import ANOMALOUS_FUTURE_YEAR_THRESHOLD, DATE_FORMAT_BR
+    from app.config.settings import ANOMALOUS_FUTURE_YEAR_THRESHOLD, DATE_FORMAT_BR, is_commercial_user
 except Exception:
     ANOMALOUS_FUTURE_YEAR_THRESHOLD = 2026
     DATE_FORMAT_BR = "%d/%m/%Y"
+    def is_commercial_user(name: object) -> bool:
+        return True
 
 
 def clean_text(val: object) -> str:
@@ -146,10 +149,19 @@ def transform_data(df_raw: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd
         df["is_sincronizado_google"] = False
 
     # 6. Tratamento de múltiplos usuários e identificação do responsável principal
+    def split_user_names(user_str: str) -> list:
+        if pd.isna(user_str) or not str(user_str).strip():
+            return []
+        return [p.strip() for p in re.split(r"[,;]+", str(user_str)) if p.strip()]
+
     def extract_user_info(user_str: str):
-        parts = [p.strip() for p in user_str.split(";") if p.strip()]
+        parts = split_user_names(user_str)
         if not parts:
             return "Não Informado", 1
+        # Prioriza colaboradores da equipe comercial real sobre contas de sistema/TI
+        comm_parts = [p for p in parts if is_commercial_user(p)]
+        if comm_parts:
+            return comm_parts[0], len(comm_parts)
         return parts[0], len(parts)
 
     user_info = df["usuarios_raw"].apply(extract_user_info)
@@ -199,14 +211,16 @@ def transform_data(df_raw: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd
     df_fato = df[cols_fato].copy()
 
     # 7. Construção da Tabela-Ponte de Usuários (tarefas_usuarios_ponte)
+    # Filtra exclusivamente colaboradores da equipe comercial (desconsiderando TI, automação, parceiros e integrações externas)
     ponte_rows = []
     for _, row in df.iterrows():
         sk = row["sk_tarefa"]
         raw_u = row["usuarios_raw"]
-        parts = [p.strip() for p in raw_u.split(";") if p.strip()]
-        if not parts:
-            parts = ["Não Informado"]
-        for idx, u in enumerate(parts, start=1):
+        parts = split_user_names(raw_u)
+        comm_parts = [p for p in parts if is_commercial_user(p)]
+        if not comm_parts:
+            continue
+        for idx, u in enumerate(comm_parts, start=1):
             ponte_rows.append({
                 "sk_tarefa": sk,
                 "nome_usuario": u,
