@@ -32,7 +32,7 @@ def _load_data_cached(mtime: float) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Data
     Carrega os DataFrames de Parquet. O parâmetro mtime garante invalidação
     automática do cache sempre que o arquivo for atualizado no disco pelo ETL.
     """
-    if not PATH_FATO_PARQUET.exists() or not PATH_PONTE_PARQUET.exists():
+    if not PATH_FATO_PARQUET.exists() or not PATH_PONTE_PARQUET.exists() or not PATH_MENSAL_PARQUET.exists():
         st.info("Arquivos Parquet não encontrados. Executando o pipeline ETL inicial...")
         run_etl()
 
@@ -40,14 +40,34 @@ def _load_data_cached(mtime: float) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Data
     df_ponte = pd.read_parquet(PATH_PONTE_PARQUET)
     df_mensal = pd.read_parquet(PATH_MENSAL_PARQUET)
 
-    # Conversão de segurança para formato date no Python
+    # 1. Conversão de segurança para formato date no Python
     if "data_evento" in df_fato.columns:
         df_fato["data_evento"] = pd.to_datetime(df_fato["data_evento"]).dt.date
 
     if "data_evento" in df_ponte.columns:
         df_ponte["data_evento"] = pd.to_datetime(df_ponte["data_evento"]).dt.date
 
+    # 2. Formatação explícita para o padrão brasileiro DD/MM/AAAA
+    if "data_hora_evento" in df_fato.columns:
+        df_fato["data_evento_str"] = pd.to_datetime(df_fato["data_hora_evento"]).dt.strftime("%d/%m/%Y").fillna("")
+
+    # 3. Dinamização do status operacional em tempo real relativo ao instante atual
+    if "finalizada" in df_fato.columns and "data_hora_evento" in df_fato.columns:
+        agora = pd.Timestamp.now()
+        condicoes = [
+            df_fato["finalizada"] == True,
+            (df_fato["finalizada"] == False) & (df_fato["data_hora_evento"] < agora),
+            (df_fato["finalizada"] == False) & (df_fato["data_hora_evento"] >= agora)
+        ]
+        import numpy as np
+        df_fato["status_operacional"] = np.select(condicoes, ["Finalizada", "Atrasada", "Agendada"], default="Indefinido")
+
+        # Reflete status atualizado na tabela-ponte
+        status_map = dict(zip(df_fato["sk_tarefa"], df_fato["status_operacional"]))
+        df_ponte["status_operacional"] = df_ponte["sk_tarefa"].map(status_map).fillna("Indefinido")
+
     return df_fato, df_ponte, df_mensal
+
 
 
 def load_data() -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:

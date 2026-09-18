@@ -30,13 +30,18 @@ def extract_raw_tasks(file_path_or_buffer=None, sheet_name: str | None = "Ploome
         if not file_path_or_buffer.exists():
             raise FileNotFoundError(f"Arquivo bruto não encontrado no caminho padrão: {file_path_or_buffer}")
 
-    # Inspeciona as abas do arquivo
+    # Garante início do buffer se aplicável
+    if hasattr(file_path_or_buffer, "seek"):
+        file_path_or_buffer.seek(0)
+
+    # Inspeciona as abas do arquivo e efetua o parse direto sem releitura do arquivo físico/buffer
     excel_file = pd.ExcelFile(file_path_or_buffer, engine="openpyxl")
     available_sheets = excel_file.sheet_names
 
     target_sheet = sheet_name if (sheet_name and sheet_name in available_sheets) else available_sheets[0]
-    df_raw = pd.read_excel(file_path_or_buffer, sheet_name=target_sheet, engine="openpyxl")
+    df_raw = excel_file.parse(target_sheet)
     return df_raw
+
 
 
 if __name__ == "__main__":

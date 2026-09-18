@@ -20,12 +20,16 @@ def render_sidebar_filters(df_fato: pd.DataFrame, df_ponte: pd.DataFrame) -> Tup
         width=40
     )
     st.sidebar.title("Filtros Globais")
-    st.sidebar.caption("Selecione os parâmetros para refinar as análises:")
+    st.sidebar.caption("Selecione os parâmetros para refinar as análises (permanecem salvos ao mudar de menu):")
 
-    # 1. Checkbox para datas anômalas (> 2026)
+    # 1. Inicialização de Estado Persistente no st.session_state
+    if "filter_incluir_anomalas" not in st.session_state:
+        st.session_state["filter_incluir_anomalas"] = False
+
+    # Checkbox para datas anômalas (> 2026)
     incluir_anomalas = st.sidebar.checkbox(
         "Incluir datas anômalas (> 2026)",
-        value=False,
+        key="filter_incluir_anomalas",
         help="Exibe tarefas registradas com anos distantes (ex: 2027 e 2032)."
     )
 
@@ -35,70 +39,106 @@ def render_sidebar_filters(df_fato: pd.DataFrame, df_ponte: pd.DataFrame) -> Tup
     else:
         df_base = df_fato.copy()
 
-    # 2. Seletor de Período Temporal (Padrão: Últimos 30 Dias)
+    # 2. Seletor de Período Temporal (Padrão: Últimos 30 Dias no padrão DD/MM/AAAA)
     datas_validas = pd.to_datetime(df_base["data_evento"]).dropna()
     min_date = datas_validas.min().date() if not datas_validas.empty else date(2025, 1, 1)
     max_date = datas_validas.max().date() if not datas_validas.empty else date(2026, 12, 31)
 
-    # Data de referência de hoje: 2026-09-17 (fixado nos últimos 30 dias por padrão)
-    hoje = min(date.today(), max_date)
+    hoje = max(min_date, min(date.today(), max_date))
     default_start = max(min_date, hoje - timedelta(days=30))
-    default_end = hoje
+    default_end = max(default_start, hoje)
+
+    # Valida integridade do período salvo na sessão
+    if "filter_periodo" not in st.session_state:
+        st.session_state["filter_periodo"] = (default_start, default_end)
+    else:
+        p_salvo = st.session_state["filter_periodo"]
+        if isinstance(p_salvo, (tuple, list)) and len(p_salvo) == 2:
+            s_dt, e_dt = p_salvo
+            if s_dt < min_date or e_dt > max_date or s_dt > e_dt:
+                st.session_state["filter_periodo"] = (default_start, default_end)
+        elif not isinstance(p_salvo, (tuple, list)):
+            st.session_state["filter_periodo"] = (default_start, default_end)
 
     periodo_selecionado = st.sidebar.date_input(
-        "Período do Evento",
-        value=(default_start, default_end),
+        "Período do Evento (DD/MM/AAAA)",
         min_value=min_date,
         max_value=max_date,
-        help="Padrão fixado nos últimos 30 dias (18/08/2026 a 17/09/2026). Você pode alterar livremente."
+        format="DD/MM/YYYY",
+        key="filter_periodo",
+        help="Padrão: últimos 30 dias. Formato dia/mês/ano (DD/MM/AAAA)."
     )
 
-    # 3. Filtro de Vendedores / Consultores
+    # 3. Inicialização e Filtro de Vendedores / Consultores
+    if "filter_vendedores" not in st.session_state:
+        st.session_state["filter_vendedores"] = []
     todos_vendedores = sorted(df_ponte["nome_usuario"].dropna().unique().tolist())
     vendedores_sel = st.sidebar.multiselect(
         "Vendedores / Consultores",
         options=todos_vendedores,
+        key="filter_vendedores",
         placeholder="Todos os consultores",
         help="Filtra tarefas onde o colaborador participou (como titular ou conjunto)."
     )
 
-    # 4. Filtro de Clientes
+    # 4. Inicialização e Filtro de Clientes
+    if "filter_clientes" not in st.session_state:
+        st.session_state["filter_clientes"] = []
     todos_clientes = sorted(df_base["nome_cliente"].dropna().unique().tolist())
     clientes_sel = st.sidebar.multiselect(
         "Clientes",
         options=todos_clientes,
+        key="filter_clientes",
         placeholder="Todos os clientes",
         help="Filtra tarefas associadas a clientes específicos."
     )
 
-    # 5. Filtro de Tipo de Tarefa (Canal)
+    # 5. Inicialização e Filtro de Tipo de Tarefa (Canal)
+    if "filter_tipos" not in st.session_state:
+        st.session_state["filter_tipos"] = []
     todos_tipos = sorted(df_base["tipo_tarefa"].dropna().unique().tolist())
     tipos_sel = st.sidebar.multiselect(
         "Canal / Tipo de Atividade",
         options=todos_tipos,
+        key="filter_tipos",
         placeholder="Todos os tipos",
         help="Visita, Reunião, WhatsApp, etc."
     )
 
-    # 6. Filtro de Status Operacional
+    # 6. Inicialização e Filtro de Status Operacional
+    if "filter_status" not in st.session_state:
+        st.session_state["filter_status"] = []
     todos_status = sorted(df_base["status_operacional"].dropna().unique().tolist())
     status_sel = st.sidebar.multiselect(
         "Status da Tarefa",
         options=todos_status,
+        key="filter_status",
         placeholder="Todos os status",
         help="Finalizada, Atrasada ou Agendada."
     )
 
-    # 7. Filtro de Marcadores
+    # 7. Inicialização e Filtro de Marcadores
+    if "filter_marcadores" not in st.session_state:
+        st.session_state["filter_marcadores"] = []
     todos_marcadores = sorted([m for m in df_base["marcadores"].dropna().unique().tolist() if m != "Sem Marcador"])
     marcadores_sel = st.sidebar.multiselect(
         "Marcadores / Tags",
         options=todos_marcadores,
+        key="filter_marcadores",
         placeholder="Todas as tags"
     )
 
-    # Botão para Limpar Filtros
-    if st.sidebar.button("🔄 Limpar Filtros", use_container_width=True):
+    # Botão para Limpar Filtros com callback de reset explícito
+    def _limpar_filtros_callback():
+        st.session_state["filter_incluir_anomalas"] = False
+        st.session_state["filter_periodo"] = (default_start, default_end)
+        st.session_state["filter_vendedores"] = []
+        st.session_state["filter_clientes"] = []
+        st.session_state["filter_tipos"] = []
+        st.session_state["filter_status"] = []
+        st.session_state["filter_marcadores"] = []
+
+    if st.sidebar.button("🔄 Limpar Filtros", use_container_width=True, on_click=_limpar_filtros_callback):
         st.rerun()
 
     # Aplicação dos filtros na fato
@@ -141,6 +181,7 @@ def render_sidebar_filters(df_fato: pd.DataFrame, df_ponte: pd.DataFrame) -> Tup
         df_ponte_filtered = df_ponte_filtered[df_ponte_filtered["nome_usuario"].isin(vendedores_sel)]
 
     st.sidebar.divider()
-    st.sidebar.caption("Comercial Saavedra — v1.0.0")
+    st.sidebar.caption("Comercial Saavedra — v1.1.0")
 
     return df_filtered, df_ponte_filtered
+

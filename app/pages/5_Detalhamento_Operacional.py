@@ -50,13 +50,16 @@ df_display = df_filtered.copy()
 if termo_busca:
     termo = termo_busca.lower()
     mask = (
-        df_display["titulo"].str.lower().str.contains(termo, na=False) |
-        df_display["nome_cliente"].str.lower().str.contains(termo, na=False) |
-        df_display["titulo_negocio"].str.lower().str.contains(termo, na=False) |
-        df_display["usuarios_raw"].str.lower().str.contains(termo, na=False) |
-        df_display["descricao"].str.lower().str.contains(termo, na=False)
+        df_display["titulo"].str.lower().str.contains(termo, na=False, regex=False) |
+        df_display["nome_cliente"].str.lower().str.contains(termo, na=False, regex=False) |
+        df_display["titulo_negocio"].str.lower().str.contains(termo, na=False, regex=False) |
+        df_display["usuarios_raw"].str.lower().str.contains(termo, na=False, regex=False) |
+        df_display["descricao"].str.lower().str.contains(termo, na=False, regex=False) |
+        df_display["contatos_relacionados"].str.lower().str.contains(termo, na=False, regex=False) |
+        df_display["criador"].str.lower().str.contains(termo, na=False, regex=False)
     )
     df_display = df_display[mask]
+
 
 with col_stats:
     st.metric("Tarefas Listadas", len(df_display))

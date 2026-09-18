@@ -41,8 +41,10 @@ col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
 try:
     df_fato_atual, _, _ = load_data()
     total_linhas_atual = len(df_fato_atual)
-    data_min_atual = df_fato_atual["data_evento"].min()
-    data_max_atual = df_fato_atual["data_evento"].max()
+    d_min = df_fato_atual["data_evento"].min()
+    d_max = df_fato_atual["data_evento"].max()
+    data_min_atual = d_min.strftime("%d/%m/%Y") if hasattr(d_min, "strftime") else str(d_min)
+    data_max_atual = d_max.strftime("%d/%m/%Y") if hasattr(d_max, "strftime") else str(d_max)
     mtime_atual = datetime.fromtimestamp(os.path.getmtime(PATH_FATO_PARQUET)).strftime("%d/%m/%Y %H:%M:%S")
 except Exception:
     total_linhas_atual = 0
@@ -53,11 +55,12 @@ except Exception:
 with col_stat1:
     st.metric(label="Total de Tarefas em Produção", value=f"{total_linhas_atual:,}".replace(",", "."))
 with col_stat2:
-    st.metric(label="Data Mais Antiga", value=str(data_min_atual))
+    st.metric(label="Data Mais Antiga", value=data_min_atual)
 with col_stat3:
-    st.metric(label="Data Mais Recente", value=str(data_max_atual))
+    st.metric(label="Data Mais Recente", value=data_max_atual)
 with col_stat4:
     st.metric(label="Última Atualização", value=mtime_atual)
+
 
 st.write("")
 st.divider()

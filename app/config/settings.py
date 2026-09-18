@@ -44,3 +44,9 @@ PAGE_CONFIG = {
     "layout": "wide",
     "initial_sidebar_state": "expanded"
 }
+
+# Padrões de Formatação de Data e Governança
+DATE_FORMAT_BR = "%d/%m/%Y"
+DATE_TIME_FORMAT_BR = "%d/%m/%Y %H:%M"
+ANOMALOUS_FUTURE_YEAR_THRESHOLD = 2026
+

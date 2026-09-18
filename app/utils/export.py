@@ -32,11 +32,20 @@ COLUMNS_FRIENDLY_NAMES = {
 
 
 def prepare_export_dataframe(df: pd.DataFrame) -> pd.DataFrame:
-    """Prepara e renomeia o DataFrame com rótulos de negócio amigáveis."""
+    """Prepara e renomeia o DataFrame com rótulos de negócio amigáveis no padrão DD/MM/AAAA."""
     cols_to_keep = [c for c in COLUMNS_FRIENDLY_NAMES.keys() if c in df.columns]
     df_export = df[cols_to_keep].copy()
+    
+    if "data_evento_str" in df_export.columns and not df_export.empty:
+        # Garante que qualquer resquício de data seja formatado como DD/MM/AAAA
+        s_dt = pd.to_datetime(df_export["data_evento_str"], format="%d/%m/%Y", errors="coerce")
+        if s_dt.isna().any():
+            fallback_dt = pd.to_datetime(df_export["data_evento_str"], errors="coerce").dt.strftime("%d/%m/%Y")
+            df_export["data_evento_str"] = df_export["data_evento_str"].where(s_dt.notna(), fallback_dt).fillna("")
+
     df_export = df_export.rename(columns=COLUMNS_FRIENDLY_NAMES)
     return df_export
+
 
 
 def convert_df_to_csv(df: pd.DataFrame) -> bytes:

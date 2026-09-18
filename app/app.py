@@ -31,6 +31,7 @@ from app.data.loader import load_data
 from app.filters.sidebar_filters import render_sidebar_filters
 from app.components.ui import render_header, render_filter_badge, render_anomaly_alert
 from app.components.kpi_cards import render_overview_kpis
+from app.components.insights import render_smart_insights
 from app.analytics.metrics import compute_overview_kpis, compute_user_kpis, get_overdue_tasks
 from app.analytics.aggregations import aggregate_timeline, aggregate_by_type, aggregate_by_client, aggregate_by_deal
 from app.charts.temporal import plot_monthly_timeline
@@ -68,6 +69,10 @@ kpis = compute_overview_kpis(df_filtered)
 render_overview_kpis(kpis)
 
 st.write("")
+render_smart_insights(df_filtered, df_ponte_filtered)
+
+st.write("")
+
 
 # 7. Alerta Rápido de Tarefas em Atraso
 if kpis["atrasadas"] > 0:

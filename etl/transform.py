@@ -9,6 +9,12 @@ from typing import Tuple
 import pandas as pd
 import numpy as np
 
+try:
+    from app.config.settings import ANOMALOUS_FUTURE_YEAR_THRESHOLD, DATE_FORMAT_BR
+except Exception:
+    ANOMALOUS_FUTURE_YEAR_THRESHOLD = 2026
+    DATE_FORMAT_BR = "%d/%m/%Y"
+
 
 def clean_text(val: object) -> str:
     """Limpa espaços nas bordas e converte valores vazios."""
@@ -35,41 +41,52 @@ def transform_data(df_raw: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd
     # 1. Criação da Surrogate Key única
     df["sk_tarefa"] = np.arange(1, len(df) + 1, dtype=np.int64)
 
-    # 2. Tratamento e padronização de campos de texto
-    # Usa 'Nome do Cliente' ou fallback para 'Cliente'
-    col_cli = "Nome do Cliente" if "Nome do Cliente" in df.columns else "Cliente"
-    df["nome_cliente"] = df[col_cli].apply(clean_text)
+    # 2. Tratamento e padronização de campos de texto com suporte a aliases
+    col_cli = next((c for c in ["Nome do Cliente", "Cliente"] if c in df.columns), None)
+    df["nome_cliente"] = df[col_cli].apply(clean_text) if col_cli else "Cliente Não Informado"
     df["nome_cliente"] = df["nome_cliente"].replace("", "Cliente Não Informado")
 
-    df["tipo_tarefa"] = df["Tipo"].apply(clean_text).replace("", "Não Informado")
+    col_tipo = next((c for c in ["Tipo"] if c in df.columns), None)
+    df["tipo_tarefa"] = df[col_tipo].apply(clean_text).replace("", "Não Informado") if col_tipo else "Não Informado"
 
-    # Tratamento de Título com fallback
-    df["titulo"] = df["Título"].apply(clean_text)
+    col_tit = next((c for c in ["Título", "Titulo"] if c in df.columns), None)
+    df["titulo"] = df[col_tit].apply(clean_text) if col_tit else ""
     mask_titulo_vazio = df["titulo"] == ""
     df.loc[mask_titulo_vazio, "titulo"] = (
         df.loc[mask_titulo_vazio, "tipo_tarefa"] + " - " + df.loc[mask_titulo_vazio, "nome_cliente"]
     )
 
-    df["descricao"] = df["Descrição"].fillna("").astype(str).str.strip()
+    col_desc = next((c for c in ["Descrição", "Descricao"] if c in df.columns), None)
+    df["descricao"] = df[col_desc].fillna("").astype(str).str.strip() if col_desc else ""
 
-    # Usa 'Título do Negócio' ou fallback para 'Negócio'
-    col_neg = "Título do Negócio" if "Título do Negócio" in df.columns else "Negócio"
-    df["titulo_negocio"] = df[col_neg].apply(clean_text).replace("", "Negócio Não Informado")
+    col_neg = next((c for c in ["Título do Negócio", "Negócio", "Titulo do Negocio"] if c in df.columns), None)
+    df["titulo_negocio"] = df[col_neg].apply(clean_text).replace("", "Negócio Não Informado") if col_neg else "Negócio Não Informado"
 
-    df["marcadores"] = df["Marcadores"].apply(clean_text).replace("", "Sem Marcador")
-    df["criador"] = df["Criador"].apply(clean_text).replace("", "Não Informado")
-    df["usuarios_raw"] = df["Usuários"].apply(clean_text)
+    col_marc = next((c for c in ["Marcadores"] if c in df.columns), None)
+    df["marcadores"] = df[col_marc].apply(clean_text).replace("", "Sem Marcador") if col_marc else "Sem Marcador"
 
-    # 3. Tratamento de datas e isolamento de componentes
-    df["data_hora_evento"] = pd.to_datetime(df["Data"], errors="coerce")
+    col_cria = next((c for c in ["Criador"] if c in df.columns), None)
+    df["criador"] = df[col_cria].apply(clean_text).replace("", "Não Informado") if col_cria else "Não Informado"
+
+    col_usr = next((c for c in ["Usuários", "Usuarios"] if c in df.columns), None)
+    df["usuarios_raw"] = df[col_usr].apply(clean_text) if col_usr else "Não Informado"
+
+    # 3. Tratamento de datas e isolamento de componentes no formato brasileiro DD/MM/AAAA
+    col_data = next((c for c in ["Data", "Data do Evento"] if c in df.columns), None)
+    df["data_hora_evento"] = pd.to_datetime(df[col_data], errors="coerce") if col_data else pd.NaT
     df["data_evento"] = df["data_hora_evento"].dt.date
-    df["data_evento_str"] = df["data_hora_evento"].dt.strftime("%Y-%m-%d")
+    # Formato padrão DD/MM/AAAA para exibição gerencial
+    df["data_evento_str"] = df["data_hora_evento"].dt.strftime(DATE_FORMAT_BR).fillna("")
+    df["data_evento_iso"] = df["data_hora_evento"].dt.strftime("%Y-%m-%d").fillna("")
 
-    # Se a coluna 'Horário' nativa existir, usa-a formatada
-    if "Horário" in df.columns:
-        df["hora_evento"] = df["Horário"].astype(str).str[:5]
+    # Se a coluna 'Horário' nativa existir, usa-a com fallback seguro contra nulos
+    col_hora = next((c for c in ["Horário", "Horario"] if c in df.columns), None)
+    if col_hora:
+        df["hora_evento"] = df[col_hora].fillna("").astype(str).str[:5]
+        mask_invalido = df["hora_evento"].isin(["", "nan", "None"])
+        df.loc[mask_invalido, "hora_evento"] = df.loc[mask_invalido, "data_hora_evento"].dt.strftime("%H:%M").fillna("00:00")
     else:
-        df["hora_evento"] = df["data_hora_evento"].dt.strftime("%H:%M")
+        df["hora_evento"] = df["data_hora_evento"].dt.strftime("%H:%M").fillna("00:00")
 
     df["hora_do_dia"] = df["data_hora_evento"].dt.hour
     df["ano_evento"] = df["data_hora_evento"].dt.year
@@ -77,7 +94,8 @@ def transform_data(df_raw: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd
     df["mes_ano_evento"] = df["data_hora_evento"].dt.strftime("%Y-%m")
     df["dia_semana_nome"] = df["data_hora_evento"].dt.day_name()
 
-    df["data_hora_criacao"] = pd.to_datetime(df["Data de criação"], errors="coerce")
+    col_dt_cria = next((c for c in ["Data de criação", "Data de criacao", "Data de Criação", "Data Criação"] if c in df.columns), None)
+    df["data_hora_criacao"] = pd.to_datetime(df[col_dt_cria], errors="coerce") if col_dt_cria else pd.NaT
     df["data_criacao"] = df["data_hora_criacao"].dt.date
 
     # Lead Time em dias (diferença entre a data de realização e a data de criação no CRM)
@@ -85,7 +103,7 @@ def transform_data(df_raw: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd
     df["lead_time_dias"] = df["lead_time_dias"].round(1)
 
     # Sinalização de anomalias de data (datas futuras fora do ciclo operacional)
-    df["is_data_futura_anomala"] = df["ano_evento"] > 2026
+    df["is_data_futura_anomala"] = df["ano_evento"] > ANOMALOUS_FUTURE_YEAR_THRESHOLD
 
     # 4. Status da Tarefa
     df["finalizada"] = df["Finalizada"].astype(bool)
@@ -196,11 +214,13 @@ def transform_data(df_raw: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd
                 "ordem_usuario": idx,
                 "tipo_tarefa": row["tipo_tarefa"],
                 "finalizada": row["finalizada"],
+                "status_operacional": row["status_operacional"],
                 "duracao_minutos": row["duracao_minutos"],
                 "duracao_horas": row["duracao_horas"],
                 "has_contato_preenchido": row["has_contato_preenchido"],
                 "is_sincronizado_google": row["is_sincronizado_google"],
                 "data_evento": row["data_evento"],
+                "data_evento_str": row["data_evento_str"],
                 "ano_evento": row["ano_evento"],
                 "mes_ano_evento": row["mes_ano_evento"],
                 "nome_cliente": row["nome_cliente"]
@@ -225,7 +245,7 @@ def transform_data(df_raw: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd
     df_mensal["taxa_conclusao_pct"] = (
         (df_mensal["tarefas_finalizadas"] / df_mensal["total_tarefas"]) * 100
     ).round(1)
-    df_mensal["lead_time_medio"] = df_mensal["lead_time_medio"].round(1)
+    df_mensal["lead_time_medio"] = df_mensal["lead_time_medio"].fillna(0.0).round(1)
     df_mensal["horas_totais"] = df_mensal["horas_totais"].round(1)
 
     return df_fato, df_ponte, df_mensal
