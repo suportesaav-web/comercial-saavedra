@@ -194,25 +194,27 @@ class PloomesClient:
             creator_email = t.get("Creator", {}).get("Email") if isinstance(t.get("Creator"), dict) else None
 
             # 6. Conversão de datas para timezone-naive
+            # O motor analítico exige que todas as datas sejam independentes de fuso horário (naive)
             dt_raw = t.get("DateTime")
             dt_val = None
             if dt_raw:
-                try:
-                    dt_val = pd.to_datetime(dt_raw).tz_localize(None)
-                except Exception:
-                    dt_val = pd.to_datetime(dt_raw)
+                parsed_dt = pd.to_datetime(dt_raw)
+                # Remove o timezone caso exista de forma segura
+                dt_val = parsed_dt.replace(tzinfo=None) if parsed_dt.tzinfo else parsed_dt
 
             create_dt_raw = t.get("CreateDate")
             create_dt_val = None
             if create_dt_raw:
-                try:
-                    create_dt_val = pd.to_datetime(create_dt_raw).tz_localize(None)
-                except Exception:
-                    create_dt_val = pd.to_datetime(create_dt_raw)
+                parsed_create_dt = pd.to_datetime(create_dt_raw)
+                create_dt_val = parsed_create_dt.replace(tzinfo=None) if parsed_create_dt.tzinfo else parsed_create_dt
 
             # 7. Duração em minutos
+            # Previne falhas caso a API retorne strings não numéricas no campo de duração
             length_val = t.get("Length")
-            duracao_float = float(length_val) if length_val is not None else 0.0
+            try:
+                duracao_float = float(length_val) if length_val is not None else 0.0
+            except (ValueError, TypeError):
+                duracao_float = 0.0
 
             # 8. Objeto normalizado
             rec = {
